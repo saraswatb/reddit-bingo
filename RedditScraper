@@ -1,0 +1,49 @@
+import pandas as pd
+import praw
+from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
+from collections import Counter
+import re
+
+from nltk.corpus import stopwords
+sw_nltk = stopwords.words('english')
+CUSTOM_STOP_WORDS = ['just', 'like', 'play', 'game', 'hes', 'im', 'playing', 'really', 'way', 'fuck', 'fucking', 'man', 'dont', 'going', 'think']
+
+reddit = praw.Reddit(client_id='umLffReyoEn_CejAF412Vg', client_secret='okxIpSC7aK0zy9yVsvuKS9hfMA1JXw', user_agent='WebScrapingBingo')
+
+def count_clean_text_words(text, debug=False):
+    clean_words_list = []
+    
+    for word in text.split():
+        word = word.lower()
+        word = re.sub(r'[^\w\s]', '', word)
+        if (word == '') or (len(word)>15):
+            continue
+        
+        if (word not in ENGLISH_STOP_WORDS) and (word not in CUSTOM_STOP_WORDS) and (word not in sw_nltk):
+            clean_words_list.append(word)
+    
+    if (debug):
+        print(clean_words_list)
+    
+    return Counter(clean_words_list)
+
+def words_hotN(subreddit_name, n_entries, n_words):
+    posts = []
+    chosen_subreddit = reddit.subreddit(subreddit_name)
+    for post in chosen_subreddit.hot(limit=n_entries):
+        posts.append([post.title, post.score, post.id, post.num_comments, post.url, post.selftext])
+        
+    posts = pd.DataFrame(posts,columns=['title', 'score', 'id', 'num_comments', 'url', 'body'])
+    
+    word_counter = Counter()
+    
+    for index, row in posts.iterrows():
+        word_counter.update(count_clean_text_words(posts.title[index]))
+        submission = reddit.submission(id = posts.id[index])
+        submission.comments.replace_more(limit=0)
+        for top_level_comment in submission.comments:
+            word_counter.update(count_clean_text_words(top_level_comment.body))
+        
+    print(word_counter.most_common(20))
+    
+    return word_counter.most_common(n_words)
