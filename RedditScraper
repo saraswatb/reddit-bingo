@@ -8,7 +8,7 @@ from nltk.corpus import stopwords
 sw_nltk = stopwords.words('english')
 CUSTOM_STOP_WORDS = ['just', 'like', 'play', 'game', 'hes', 'im', 'playing', 'really', 'way', 'fuck', 'fucking', 'man', 'dont', 'going', 'think']
 
-reddit = praw.Reddit(client_id='umLffReyoEn_CejAF412Vg', client_secret='okxIpSC7aK0zy9yVsvuKS9hfMA1JXw', user_agent='WebScrapingBingo')
+reddit = praw.Reddit(client_id='***********', client_secret='***************', user_agent='WebScrapingBingo')
 
 def count_clean_text_words(text, debug=False):
     clean_words_list = []
